@@ -41,7 +41,8 @@ int main(int argc, char** argv)
         }
     }
 
-    auto mavsdk_server = mavsdk_server_run(connection_url.c_str(), mavsdk_server_port);
+    MavsdkServer* mavsdk_server;
+    mavsdk_server_run(&mavsdk_server, connection_url.c_str(), mavsdk_server_port);
     mavsdk_server_attach(mavsdk_server);
 }
 

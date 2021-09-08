@@ -2,19 +2,21 @@
 #include "mavsdk_server.h"
 #include <string>
 
-MavsdkServer* mavsdk_server_run(const char* system_address, const int mavsdk_server_port)
+void mavsdk_server_run(
+    MavsdkServer** mavsdk_server, const char* system_address, const int mavsdk_server_port)
 {
-    auto mavsdk_server = new MavsdkServer();
+    *mavsdk_server = new MavsdkServer();
 
-    mavsdk_server->connect(std::string(system_address));
-
-    auto grpc_port = mavsdk_server->startGrpcServer(mavsdk_server_port);
-    if (grpc_port == 0) {
-        // Server failed to start
-        return nullptr;
+    if (!(*mavsdk_server)->connect(std::string(system_address))) {
+        // Connection was cancelled, stop here
+        return;
     }
 
-    return mavsdk_server;
+    auto grpc_port = (*mavsdk_server)->startGrpcServer(mavsdk_server_port);
+    if (grpc_port == 0) {
+        // Server failed to start
+        return;
+    }
 }
 
 int mavsdk_server_get_port(MavsdkServer* mavsdk_server)
@@ -30,5 +32,4 @@ void mavsdk_server_attach(MavsdkServer* mavsdk_server)
 void mavsdk_server_stop(MavsdkServer* mavsdk_server)
 {
     mavsdk_server->stop();
-    delete mavsdk_server;
 }
