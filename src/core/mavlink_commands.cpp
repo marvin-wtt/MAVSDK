@@ -273,15 +273,14 @@ void MavlinkCommandSender::do_work()
         return;
     }
 
-    if (work->already_sent) {
-        return;
-    }
-
-    // LogDebug() << "sending it the first time (" << work->mavlink_command << ")";
-    work->time_started = _parent.get_time().steady_time();
-
     {
         std::lock_guard<std::mutex> lock(_sent_commands_mutex);
+        if (work->already_sent) {
+            return;
+        }
+        // LogDebug() << "sending it the first time (" << work->mavlink_command << ")";
+        work->time_started = _parent.get_time().steady_time();
+
         const auto was_inserted =
             _sent_commands.insert(std::make_pair(work->mavlink_command, work)).second;
 
@@ -316,9 +315,9 @@ void MavlinkCommandSender::do_work()
 
             return;
         }
+        work->already_sent = true;
     }
 
-    work->already_sent = true;
     _parent.register_timeout_handler(
         std::bind(&MavlinkCommandSender::receive_timeout, this, work->mavlink_command),
         work->timeout_s,
